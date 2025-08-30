@@ -50,7 +50,10 @@ const db = require('./database');
 // Middleware
 app.use(cors({
   origin: [process.env.CLIENT_URL, process.env.SERVER_URL],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json());
 app.use(session({
@@ -59,10 +62,10 @@ app.use(session({
   resave: true,
   saveUninitialized: false,
   cookie: { 
-    secure: false, // Set to false for now to avoid HTTPS issues
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: 'lax',
+    sameSite: 'lax', // Use lax for better compatibility
     path: '/'
   },
   name: 'applicant-reviewer-session',
@@ -112,37 +115,27 @@ const ensureAuthenticated = (req, res, next) => {
 };
 
 // Routes
-app.get('/auth/google', (req, res, next) => {
-  // Clear any existing session data to force fresh authentication
-  if (req.session) {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Error destroying session:', err);
-      }
-      
-      // Force re-authentication by adding prompt=consent
-      passport.authenticate('google', { 
-        scope: ['profile', 'email'],
-        prompt: 'consent', // Force consent screen
-        access_type: 'offline' // Request refresh token
-      })(req, res, next);
-    });
-  } else {
-    // Force re-authentication by adding prompt=consent
-    passport.authenticate('google', { 
-      scope: ['profile', 'email'],
-      prompt: 'consent', // Force consent screen
-      access_type: 'offline' // Request refresh token
-    })(req, res, next);
-  }
-});
+app.get('/auth/google', 
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'],
+    prompt: 'consent',
+    access_type: 'offline'
+  })
+);
 
 app.get('/auth/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login' }),
+  passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_URL}?error=auth_failed` }),
   (req, res) => {
+    console.log('=== OAuth Callback Debug ===');
+    console.log('CLIENT_URL:', process.env.CLIENT_URL);
+    console.log('ALLOWED_EMAIL:', process.env.ALLOWED_EMAIL);
+    console.log('Session ID:', req.sessionID);
+    console.log('User object:', req.user ? 'Present' : 'Missing');
+    
     // Check if the user's email matches the allowed email
     if (req.user && req.user.emails && req.user.emails[0]) {
       const userEmail = req.user.emails[0].value;
+      console.log('User email:', userEmail);
       
       if (userEmail === process.env.ALLOWED_EMAIL) {
         // Store user data in session
@@ -150,6 +143,7 @@ app.get('/auth/google/callback',
         req.session.authenticated = true;
         req.session.authenticatedAt = new Date().toISOString();
         
+        console.log('Authentication successful, redirecting to:', process.env.CLIENT_URL);
         // Simple redirect back to client
         res.redirect(`${process.env.CLIENT_URL}`);
       } else {
