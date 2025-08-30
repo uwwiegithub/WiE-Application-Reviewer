@@ -663,14 +663,8 @@ app.delete('/api/votes/:sheetId/:applicantRow/:voterName', ensureAuthenticated, 
   }
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-  });
-}
+// Frontend is deployed separately on Vercel
+// Backend only serves API endpoints
 
 // Initialize database and start server
 db.init().then(() => {
