@@ -1,0 +1,656 @@
+.App {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* Applicant List View Styles */
+.applicants-list {
+  margin-top: 20px;
+}
+
+.role-section {
+  margin-bottom: 30px;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.role-title {
+  color: #000000;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 3px solid #ad48e8;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  border: 1px solid #dee2e6;
+}
+
+.total-votes {
+  color: #6400cf;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.top-performer {
+  color: #ad48e8;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.role-applicants {
+  display: grid;
+  gap: 15px;
+}
+
+.applicant-list-item {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.applicant-list-item:hover {
+  background: #f8f9fa;
+  border-color: #6400cf;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.applicant-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.applicant-list-name {
+  margin: 0;
+  color: #6400cf;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.applicant-vote-count {
+  background: linear-gradient(135deg, #6400cf 0%, #ad48e8 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vote-ranking {
+  background: linear-gradient(135deg, #6400cf 0%, #ad48e8 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: inline-block;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.applicant-list-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.applicant-list-detail {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Responsive design for applicant list */
+@media (max-width: 768px) {
+  .role-applicants {
+    grid-template-columns: 1fr;
+  }
+  
+  .applicant-list-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .applicant-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Simple applicant detail styling */
+.applicant-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.detail-value {
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+/* Make applicant name more prominent */
+.applicant-name {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* Make year and term badges more bold */
+.sheet-badge {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+/* Sheet card delete button styling */
+.sheet-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.sheet-title {
+  margin: 0;
+  color: #6400cf;
+  font-size: 1.2rem;
+  flex: 1;
+  margin-right: 10px;
+}
+
+.delete-sheet-button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.delete-sheet-button:hover {
+  background: #c82333;
+  transform: scale(1.1);
+}
+
+.delete-sheet-button:active {
+  transform: scale(0.95);
+}
+
+/* Voters section styling */
+.voters-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.voters-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #495057;
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+.voters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.voter-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  transition: all 0.2s ease;
+}
+
+.voter-item:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.voter-name {
+  font-weight: 500;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.delete-vote-button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-vote-button:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+.delete-vote-button:active {
+  transform: translateY(0);
+}
+
+/* Role info section styling - make it much bigger and more prominent */
+.role-info-section {
+  text-align: center;
+  margin: 20px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 2px solid #6400cf;
+}
+
+.role-info-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #6400cf;
+  margin: 0 0 15px 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.role-info-count {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #ad48e8;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Applicant Detail View Styles */
+.applicant-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.applicant-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 25px;
+  border-bottom: 3px solid #f0f0f0;
+}
+
+.applicant-name {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #6400cf;
+  margin: 0 0 15px 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.vote-count {
+  display: inline-block;
+  background: linear-gradient(135deg, #6400cf 0%, #ad48e8 100%);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.applicant-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.detail-row {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #6400cf;
+  transition: all 0.2s ease;
+}
+
+.detail-row:hover {
+  background: #e9ecef;
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Make rows with N/A values much smaller */
+.detail-row:has(.detail-value:only-child:contains("N/A")),
+.detail-row:has(.detail-value:contains("N/A")) {
+  padding: 2px 20px;
+  min-height: auto;
+}
+
+/* Alternative approach for browsers that don't support :has() */
+.detail-row.na-row {
+  padding: 2px 20px;
+  min-height: auto;
+}
+
+/* Make N/A rows even more compact */
+.detail-row.na-row .detail-label {
+  font-size: 0.8rem;
+  margin-bottom: 1px;
+  line-height: 1.2;
+  color: #666;
+}
+
+.detail-row.na-row .detail-value {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  margin-bottom: 1px;
+}
+
+.detail-label {
+  display: block;
+  font-weight: 600;
+  color: #6400cf;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  display: block;
+  color: #212529;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+/* Vote section styling */
+.vote-section {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+  border: 2px solid #e9ecef;
+}
+
+.vote-input {
+  width: 100%;
+  max-width: 300px;
+  padding: 15px 20px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
+}
+
+.vote-input:focus {
+  outline: none;
+  border-color: #6400cf;
+  box-shadow: 0 0 0 3px rgba(100, 0, 207, 0.1);
+}
+
+.vote-button {
+  background: linear-gradient(135deg, #6400cf 0%, #ad48e8 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.vote-button:hover {
+  background: linear-gradient(135deg, #34a853 0%, #2d8f47 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.vote-button:active {
+  transform: translateY(0);
+}
+
+/* Navigation styling */
+.navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 20px 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.nav-button {
+  background: #6400cf;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-button:hover:not(:disabled) {
+  background: #ad48e8;
+  transform: translateY(-1px);
+}
+
+.nav-button:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.page-info {
+  font-size: 1.1rem;
+  color: #6400cf;
+  font-weight: 500;
+}
+
+/* Home page banner styling */
+.section-header {
+  color: #6400cf;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.top-banner {
+  background: linear-gradient(135deg, #6400cf 0%, #ad48e8 100%);
+  color: white;
+  padding: 30px 20px;
+  text-align: center;
+  margin-bottom: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.top-banner h1 {
+  margin: 0 0 15px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.top-banner p {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+.sheet-badge {
+  background: #ad48e8;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Applicant list instructions and total count styling */
+.applicant-instructions {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+.applicant-total {
+  color: #6400cf;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 30px;
+}
+
+.logout-button {
+  background: white;
+  color: #000000;
+  border: 2px solid #6400cf;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 20px;
+}
+
+.logout-button:hover {
+  background: #f8f9fa;
+  border-color: #ad48e8;
+}
+
+/* Copy email button styling */
+.copy-email-button {
+  background: #6400cf;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-left: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.copy-email-button:hover {
+  background: #ad48e8;
+  transform: scale(1.1);
+}
+
+.copy-email-button:active {
+  transform: scale(0.95);
+}
+
+/* Selection checkboxes styling */
+.applicant-selections {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e9ecef;
+}
+
+.selection-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.9rem;
+  color: #6400cf;
+  font-weight: 500;
+}
+
+.selection-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #6400cf;
+}
+
+.checkbox-label {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.selection-checkbox:hover .checkbox-label {
+  color: #ad48e8;
+}
+
+/* Style for checked checkboxes */
+.selection-checkbox input[type="checkbox"]:checked + .checkbox-label {
+  font-weight: 600;
+  color: #ad48e8;
+}
