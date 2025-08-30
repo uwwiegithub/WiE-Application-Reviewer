@@ -174,8 +174,16 @@ app.get('/auth/logout', (req, res) => {
 });
 
 app.get('/auth/status', (req, res) => {
+  console.log('=== Auth Status Check ===');
+  console.log('Session ID:', req.sessionID);
+  console.log('Has cookies:', req.headers.cookie ? 'Yes' : 'No');
+  console.log('Is authenticated (passport):', req.isAuthenticated());
+  console.log('Session authenticated:', req.session?.authenticated);
+  console.log('Session user:', req.session?.user ? 'Present' : 'Missing');
+  
   // Check passport authentication first
   if (req.isAuthenticated()) {
+    console.log('Authentication via passport successful');
     // Extend session on each status check
     req.session.touch();
     res.json({ 
@@ -183,13 +191,18 @@ app.get('/auth/status', (req, res) => {
       user: req.user
     });
   } else if (req.session && req.session.authenticated && req.session.user) {
+    console.log('Authentication via session successful');
     // Check if we have stored user data in session
     res.json({ 
       authenticated: true, 
       user: req.session.user
     });
   } else {
-    res.json({ authenticated: false });
+    console.log('Authentication failed - no valid session');
+    res.json({ 
+      authenticated: false,
+      reason: req.session ? 'session_exists_but_not_authenticated' : 'no_session'
+    });
   }
 });
 
