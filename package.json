@@ -9,6 +9,7 @@
     "client": "cd client && npm start",
     "build": "cd client && npm run build",
     "build:vercel": "cd client && npm run build",
+    "build:vercel-debug": "bash build.sh",
     "install-all": "npm install && cd client && npm install",
     "setup": "node setup.js"
   },
