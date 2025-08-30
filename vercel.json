@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run install-all && cd client && npm run build",
   "outputDirectory": "client/build",
-  "installCommand": "echo 'Install handled in build command'",
+  "installCommand": "npm run install-all",
   "framework": "create-react-app"
 }
