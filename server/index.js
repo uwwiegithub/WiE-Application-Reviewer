@@ -59,15 +59,14 @@ app.use(session({
   resave: true,
   saveUninitialized: false,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production', // true in production with HTTPS
+    secure: false, // Set to false for now to avoid HTTPS issues
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days instead of 24 hours
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     sameSite: 'lax',
-    path: '/',
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Explicit expiration
+    path: '/'
   },
   name: 'applicant-reviewer-session',
-  rolling: true // Extend session on each request
+  rolling: true
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -151,15 +150,8 @@ app.get('/auth/google/callback',
         req.session.authenticated = true;
         req.session.authenticatedAt = new Date().toISOString();
         
-        // Ensure session is saved before redirecting
-        req.session.save((err) => {
-          if (err) {
-            console.error('Error saving session:', err);
-            return res.redirect(`${process.env.CLIENT_URL}?error=session_error`);
-          }
-          
-          res.redirect(`${process.env.CLIENT_URL}?auth=success`);
-        });
+        // Simple redirect back to client
+        res.redirect(`${process.env.CLIENT_URL}`);
       } else {
         console.error('User email not authorized:', userEmail);
         res.redirect(`${process.env.CLIENT_URL}?error=access_denied`);
