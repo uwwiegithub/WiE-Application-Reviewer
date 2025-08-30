@@ -47,7 +47,19 @@ if (missingVars.length > 0) {
 // Database for persistent storage
 const db = require('./database');
 
+// Debug environment variables
+console.log('=== Environment Debug ===');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('CLIENT_URL:', process.env.CLIENT_URL);
+console.log('SERVER_URL:', process.env.SERVER_URL);
+console.log('CORS Origins:', [process.env.CLIENT_URL, process.env.SERVER_URL]);
+
 // Middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} from ${req.headers.origin || 'unknown'}`);
+  next();
+});
+
 app.use(cors({
   origin: [process.env.CLIENT_URL, process.env.SERVER_URL],
   credentials: true,
