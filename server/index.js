@@ -65,7 +65,8 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: 'lax', // Use lax for better compatibility
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Allow cross-domain in production
+    domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined, // Share cookies across subdomains
     path: '/'
   },
   name: 'applicant-reviewer-session',
