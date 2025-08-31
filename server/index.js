@@ -3,6 +3,7 @@ const cors = require('cors');
 const session = require('express-session');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const jwt = require('jsonwebtoken');
 const { google } = require('googleapis');
 const path = require('path');
 // Load environment variables
@@ -116,11 +117,29 @@ passport.deserializeUser((user, done) => {
 
 // Authentication middleware
 const ensureAuthenticated = (req, res, next) => {
+  // Check for JWT token in Authorization header first
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    try {
+      const decoded = jwt.verify(token, process.env.SESSION_SECRET);
+      // Attach user info to request for use in route handlers
+      req.user = decoded.user;
+      req.authenticatedVia = 'jwt';
+      return next();
+    } catch (error) {
+      console.log('JWT verification failed in ensureAuthenticated:', error.message);
+    }
+  }
+  
+  // Fall back to session-based authentication
   if (req.isAuthenticated()) {
     req.session.touch();
+    req.authenticatedVia = 'passport';
     return next();
   } else if (req.session && req.session.authenticated && req.session.user) {
     req.session.touch();
+    req.authenticatedVia = 'session';
     return next();
   }
   
@@ -151,14 +170,26 @@ app.get('/auth/google/callback',
       console.log('User email:', userEmail);
       
       if (userEmail === process.env.ALLOWED_EMAIL) {
-        // Store user data in session
+        // Store user data in session (keep for backwards compatibility)
         req.session.user = req.user;
         req.session.authenticated = true;
         req.session.authenticatedAt = new Date().toISOString();
         
+        // Generate JWT token for cross-domain authentication
+        const token = jwt.sign(
+          { 
+            user: req.user,
+            email: userEmail,
+            authenticatedAt: new Date().toISOString()
+          },
+          process.env.SESSION_SECRET,
+          { expiresIn: '7d' }
+        );
+        
         console.log('Authentication successful, redirecting to:', process.env.CLIENT_URL);
-        // Simple redirect back to client
-        res.redirect(`${process.env.CLIENT_URL}`);
+        console.log('Generated JWT token length:', token.length);
+        // Redirect with JWT token as query parameter
+        res.redirect(`${process.env.CLIENT_URL}?token=${token}`);
       } else {
         console.error('User email not authorized:', userEmail);
         res.redirect(`${process.env.CLIENT_URL}?error=access_denied`);
@@ -190,14 +221,30 @@ app.get('/auth/status', (req, res) => {
   console.log('=== Auth Status Check ===');
   console.log('Session ID:', req.sessionID);
   console.log('Has cookies:', req.headers.cookie ? 'Yes' : 'No');
+  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
   console.log('Is authenticated (passport):', req.isAuthenticated());
   console.log('Session authenticated:', req.session?.authenticated);
   console.log('Session user:', req.session?.user ? 'Present' : 'Missing');
   
-  // Check passport authentication first
+  // Check for JWT token in Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    try {
+      const decoded = jwt.verify(token, process.env.SESSION_SECRET);
+      console.log('Authentication via JWT successful');
+      return res.json({
+        authenticated: true,
+        user: decoded.user
+      });
+    } catch (error) {
+      console.log('JWT verification failed:', error.message);
+    }
+  }
+  
+  // Check passport authentication
   if (req.isAuthenticated()) {
     console.log('Authentication via passport successful');
-    // Extend session on each status check
     req.session.touch();
     res.json({ 
       authenticated: true, 
@@ -205,13 +252,12 @@ app.get('/auth/status', (req, res) => {
     });
   } else if (req.session && req.session.authenticated && req.session.user) {
     console.log('Authentication via session successful');
-    // Check if we have stored user data in session
     res.json({ 
       authenticated: true, 
       user: req.session.user
     });
   } else {
-    console.log('Authentication failed - no valid session');
+    console.log('Authentication failed - no valid session or token');
     res.json({ 
       authenticated: false,
       reason: req.session ? 'session_exists_but_not_authenticated' : 'no_session'

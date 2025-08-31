@@ -32,10 +32,17 @@ function App() {
 
   // Axios interceptors for authentication
   useEffect(() => {
-    // Request interceptor to ensure withCredentials is set
+    // Request interceptor to ensure withCredentials is set and add JWT token
     const requestInterceptor = axios.interceptors.request.use(
       (config) => {
         config.withCredentials = true;
+        
+        // Add JWT token to Authorization header if available
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        
         return config;
       },
       (error) => {
@@ -70,6 +77,28 @@ function App() {
   }, []);
 
   useEffect(() => {
+    // Check for JWT token in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      console.log('JWT token received from URL, length:', token.length);
+      // Store token in localStorage
+      localStorage.setItem('authToken', token);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      console.log('No JWT token in URL parameters');
+    }
+    
+    // Check if token exists in localStorage
+    const existingToken = localStorage.getItem('authToken');
+    if (existingToken) {
+      console.log('Existing JWT token found in localStorage, length:', existingToken.length);
+    } else {
+      console.log('No JWT token in localStorage');
+    }
+    
     // Initial authentication check
     checkAuthStatus();
     
@@ -90,14 +119,18 @@ function App() {
   }, []);
 
   const checkAuthStatus = async (retryCount = 0) => {
+    console.log('=== checkAuthStatus called ===');
     try {
       const response = await axios.get('/auth/status');
+      console.log('Auth status response:', response.data);
       
       if (response.data.authenticated) {
+        console.log('Setting isAuthenticated to true');
         setIsAuthenticated(true);
         setUser(response.data.user);
         setLastAuthCheck(Date.now());
       } else {
+        console.log('Setting isAuthenticated to false, reason:', response.data.reason);
         // Check the reason for authentication failure
         const reason = response.data.reason;
         
@@ -158,10 +191,13 @@ function App() {
   const handleLogout = async () => {
     try {
       await axios.get('/auth/logout');
+      // Clear JWT token from localStorage
+      localStorage.removeItem('authToken');
       setIsAuthenticated(false);
       setUser(null);
     } catch (error) {
-      // Logout failed, but still clear local state
+      // Logout failed, but still clear local state and token
+      localStorage.removeItem('authToken');
       setIsAuthenticated(false);
       setUser(null);
     }
@@ -175,6 +211,11 @@ function App() {
     }
   };
 
+  console.log('=== App Render Debug ===');
+  console.log('loading:', loading);
+  console.log('isAuthenticated:', isAuthenticated);
+  console.log('user:', user);
+
   if (loading) {
     return (
       <div className="loading">
@@ -185,12 +226,15 @@ function App() {
   }
 
   if (!isAuthenticated) {
+    console.log('Showing Login component - user not authenticated');
     return (
       <div>
         <Login onLogin={checkAuthStatus} />
       </div>
     );
   }
+
+  console.log('Showing Home component - user authenticated');
 
   return (
     <Router>
