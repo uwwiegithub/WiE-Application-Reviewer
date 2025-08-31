@@ -31,6 +31,7 @@ This project has 2 .env files you need to fill in. One in the root directory (/e
 
 ### Deployment
 We use https://dashboard.render.com/ to host the server and frontend. Our account is with wie@engsoc.uwaterloo.ca.
+
 Frontend: 
 - https://wie-undergrad-comm.onrender.com/
 - [Onrender dashboard](https://dashboard.render.com/static/srv-d2pm02v5r7bs739sfn10/deploys/dep-d2prkjqdbo4c73foirr0?r=2025-08-31%4002%3A57%3A24%7E2025-08-31%4003%3A00%3A09)
