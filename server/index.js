@@ -48,18 +48,9 @@ if (missingVars.length > 0) {
 // Database for persistent storage
 const db = require('./database');
 
-// Debug environment variables
-console.log('=== Environment Debug ===');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('CLIENT_URL:', process.env.CLIENT_URL);
-console.log('SERVER_URL:', process.env.SERVER_URL);
-console.log('CORS Origins:', [process.env.CLIENT_URL, process.env.SERVER_URL]);
+
 
 // Middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} from ${req.headers.origin || 'unknown'}`);
-  next();
-});
 
 app.use(cors({
   origin: [process.env.CLIENT_URL, process.env.SERVER_URL],
@@ -128,7 +119,7 @@ const ensureAuthenticated = (req, res, next) => {
       req.authenticatedVia = 'jwt';
       return next();
     } catch (error) {
-      console.log('JWT verification failed in ensureAuthenticated:', error.message);
+
     }
   }
   
@@ -158,16 +149,12 @@ app.get('/auth/google',
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_URL}?error=auth_failed` }),
   (req, res) => {
-    console.log('=== OAuth Callback Debug ===');
-    console.log('CLIENT_URL:', process.env.CLIENT_URL);
-    console.log('ALLOWED_EMAIL:', process.env.ALLOWED_EMAIL);
-    console.log('Session ID:', req.sessionID);
-    console.log('User object:', req.user ? 'Present' : 'Missing');
+
     
     // Check if the user's email matches the allowed email
     if (req.user && req.user.emails && req.user.emails[0]) {
       const userEmail = req.user.emails[0].value;
-      console.log('User email:', userEmail);
+
       
       if (userEmail === process.env.ALLOWED_EMAIL) {
         // Store user data in session (keep for backwards compatibility)
@@ -186,8 +173,7 @@ app.get('/auth/google/callback',
           { expiresIn: '7d' }
         );
         
-        console.log('Authentication successful, redirecting to:', process.env.CLIENT_URL);
-        console.log('Generated JWT token length:', token.length);
+
         // Redirect with JWT token as query parameter
         res.redirect(`${process.env.CLIENT_URL}?token=${token}`);
       } else {
@@ -218,13 +204,7 @@ app.get('/auth/logout', (req, res) => {
 });
 
 app.get('/auth/status', (req, res) => {
-  console.log('=== Auth Status Check ===');
-  console.log('Session ID:', req.sessionID);
-  console.log('Has cookies:', req.headers.cookie ? 'Yes' : 'No');
-  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
-  console.log('Is authenticated (passport):', req.isAuthenticated());
-  console.log('Session authenticated:', req.session?.authenticated);
-  console.log('Session user:', req.session?.user ? 'Present' : 'Missing');
+
   
   // Check for JWT token in Authorization header
   const authHeader = req.headers.authorization;
@@ -232,32 +212,32 @@ app.get('/auth/status', (req, res) => {
     const token = authHeader.substring(7);
     try {
       const decoded = jwt.verify(token, process.env.SESSION_SECRET);
-      console.log('Authentication via JWT successful');
+
       return res.json({
         authenticated: true,
         user: decoded.user
       });
     } catch (error) {
-      console.log('JWT verification failed:', error.message);
+
     }
   }
   
   // Check passport authentication
   if (req.isAuthenticated()) {
-    console.log('Authentication via passport successful');
+
     req.session.touch();
     res.json({ 
       authenticated: true, 
       user: req.user
     });
   } else if (req.session && req.session.authenticated && req.session.user) {
-    console.log('Authentication via session successful');
+
     res.json({ 
       authenticated: true, 
       user: req.session.user
     });
   } else {
-    console.log('Authentication failed - no valid session or token');
+
     res.json({ 
       authenticated: false,
       reason: req.session ? 'session_exists_but_not_authenticated' : 'no_session'
@@ -739,7 +719,7 @@ db.init().then(() => {
             console.error('Error during session cleanup:', err);
             return;
           }
-          console.log(`Active sessions: ${Object.keys(sessions).length}`);
+
         });
       }
     }, 60 * 60 * 1000); // Every hour

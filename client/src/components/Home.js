@@ -26,9 +26,8 @@ const Home = ({ user }) => {
           setError('Your session has expired. Please refresh the page and log in again.');
           return;
         }
-        console.log('Authentication status confirmed before fetching sheets');
       } catch (authError) {
-        console.log('Could not verify auth status, attempting to continue');
+        // Could not verify auth status, attempting to continue
       }
       
       const response = await axios.get('/api/sheets');
@@ -39,8 +38,6 @@ const Home = ({ user }) => {
       // Handle authentication errors gracefully
       if (error.response && error.response.status === 401) {
         try {
-          console.log('Authentication error while fetching sheets, checking auth status');
-          
           // Check current auth status
           const authResponse = await axios.get('/auth/status');
           if (authResponse.data.authenticated) {
@@ -89,17 +86,15 @@ const Home = ({ user }) => {
           setError('Your session has expired. Please refresh the page and log in again.');
           return;
         }
-        console.log('Authentication status confirmed before deleting sheet');
       } catch (authError) {
-        console.log('Could not verify auth status, attempting to continue');
+        // Could not verify auth status, attempting to continue
       }
       
       // Try to refresh the session
       try {
         await axios.post('/auth/refresh');
-        console.log('Session refreshed before deleting sheet');
       } catch (refreshError) {
-        console.log('Session refresh failed, but continuing with delete attempt');
+        // Session refresh failed, but continuing with delete attempt
       }
       
       await axios.delete(`/api/sheets/${sheetId}`);
@@ -113,8 +108,6 @@ const Home = ({ user }) => {
         if (error.response.status === 401) {
           // Authentication error - try to check auth status and refresh
           try {
-            console.log('Authentication error, checking auth status and attempting refresh');
-            
             // Check current auth status
             const authResponse = await axios.get('/auth/status');
             if (authResponse.data.authenticated) {

@@ -70,7 +70,7 @@ const ApplicantReview = () => {
             const duplicateHeader = `${headerStr} (return director)`;
             processedHeaders.push(duplicateHeader);
             seenHeaders.add(headerStr);
-            console.log(`Frontend: Duplicate header "${headerStr}" renamed to "${duplicateHeader}"`);
+
           } else {
             // Subsequent occurrence keeps original name
             processedHeaders.push(headerStr);
@@ -100,14 +100,14 @@ const ApplicantReview = () => {
   const fetchVotes = useCallback(async () => {
     try {
       const response = await axios.get(`/api/sheets/${sheetId}/votes`);
-      console.log('fetchVotes: Response data', response.data);
+
       setVotes(response.data);
     } catch (error) {
       console.error('Error fetching votes:', error);
       
       // Handle authentication errors gracefully
       if (error.response && error.response.status === 401) {
-        console.log('Authentication error while fetching votes, attempting to refresh session');
+
         try {
           await axios.post('/auth/refresh');
           // Retry fetching votes after session refresh
@@ -115,7 +115,7 @@ const ApplicantReview = () => {
           setVotes(retryResponse.data);
           return;
         } catch (retryError) {
-          console.error('Failed to refresh session and retry fetching votes:', retryError);
+
           // Don't show error to user, just log it
         }
       }
@@ -137,7 +137,7 @@ const ApplicantReview = () => {
           setSelections(retryResponse.data);
           return;
         } catch (retryError) {
-          console.error('Failed to refresh session and retry fetching selections:', retryError);
+
         }
       }
     }
@@ -188,14 +188,14 @@ const ApplicantReview = () => {
         voterName: voterName.trim()
       };
       
-      console.log('handleVote: Sending vote data', voteData);
+
       
       // First, try to refresh the session to ensure it's valid
       try {
         await axios.post('/auth/refresh');
-        console.log('Session refreshed before voting');
+
       } catch (refreshError) {
-        console.log('Session refresh failed, but continuing with vote attempt');
+
       }
       
       await axios.post('/api/votes', voteData);
@@ -216,7 +216,7 @@ const ApplicantReview = () => {
         if (error.response.status === 401) {
           // Authentication error - try to refresh session and retry once
           try {
-            console.log('Authentication error, attempting to refresh session and retry');
+
             await axios.post('/auth/refresh');
             
             // Retry the vote after session refresh
@@ -236,7 +236,6 @@ const ApplicantReview = () => {
             await fetchVotes();
             return;
           } catch (retryError) {
-            console.error('Retry after session refresh failed:', retryError);
             setError('Authentication failed. Please refresh the page and try again.');
           }
         } else {
@@ -269,7 +268,7 @@ const ApplicantReview = () => {
       updatedVotesData[voteKey] = updatedVoters;
       setVotes(updatedVotesData);
 
-      console.log('handleDeleteVote: Sending delete vote data', { sheetId, applicantRow: currentApplicantData.rowIndex, voterName });
+
       await axios.delete(`/api/votes/${sheetId}/${currentApplicantData.rowIndex}/${voterName}`);
 
       setSuccessMessage('Vote deleted successfully!');
@@ -285,7 +284,7 @@ const ApplicantReview = () => {
         if (error.response.status === 401) {
           // Authentication error - try to refresh session and retry
           try {
-            console.log('Authentication error during delete, attempting to refresh session and retry');
+
             await axios.post('/auth/refresh');
             
             // Retry the delete after session refresh
@@ -297,7 +296,6 @@ const ApplicantReview = () => {
             await fetchVotes();
             return;
           } catch (retryError) {
-            console.error('Retry after session refresh failed:', retryError);
             if (retryError.response && retryError.response.status === 401) {
               setError('Your session has expired. Please refresh the page and log in again.');
             } else {
@@ -336,8 +334,6 @@ const ApplicantReview = () => {
       setSuccessMessage('Selection updated successfully!');
       setTimeout(() => setSuccessMessage(''), 2000);
     } catch (error) {
-      console.error('Error updating selection:', error);
-      
       // Get current selections again for error handling
       const currentSelections = selections[`${sheetId}-${applicantRow}`] || {};
       
@@ -363,7 +359,6 @@ const ApplicantReview = () => {
           setTimeout(() => setSuccessMessage(''), 2000);
           setError('');
         } catch (retryError) {
-          console.error('Retry after session refresh failed:', retryError);
           setError('Authentication failed. Please refresh the page and try again.');
         }
       }
@@ -431,7 +426,7 @@ const ApplicantReview = () => {
 
   const getVoteCount = (applicant) => {
     if (!applicant || !applicant.rowIndex) {
-      // console.log('getVoteCount: No applicant or rowIndex', { applicant });
+
       return 0;
     }
     const key = `${sheetId}-${applicant.rowIndex}`;
@@ -442,7 +437,7 @@ const ApplicantReview = () => {
     // const numberKey = `${sheetId}-${Number(applicant.rowIndex)}`;
     
     const voteCount = votes[key] ? votes[key].length : 0;
-    // console.log('getVoteCount: Result', { key, voteCount, votesForKey: votes[key] });
+
     return voteCount;
   };
 

@@ -15,7 +15,6 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.log('Authentication error detected in interceptor, but letting component handle it');
       // Don't redirect immediately, let the component handle it
       // This prevents infinite redirects and allows for session refresh attempts
     }
@@ -82,22 +81,14 @@ function App() {
     const token = urlParams.get('token');
     
     if (token) {
-      console.log('JWT token received from URL, length:', token.length);
       // Store token in localStorage
       localStorage.setItem('authToken', token);
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
-    } else {
-      console.log('No JWT token in URL parameters');
     }
     
     // Check if token exists in localStorage
     const existingToken = localStorage.getItem('authToken');
-    if (existingToken) {
-      console.log('Existing JWT token found in localStorage, length:', existingToken.length);
-    } else {
-      console.log('No JWT token in localStorage');
-    }
     
     // Initial authentication check
     checkAuthStatus();
@@ -119,18 +110,14 @@ function App() {
   }, []);
 
   const checkAuthStatus = async (retryCount = 0) => {
-    console.log('=== checkAuthStatus called ===');
     try {
       const response = await axios.get('/auth/status');
-      console.log('Auth status response:', response.data);
       
       if (response.data.authenticated) {
-        console.log('Setting isAuthenticated to true');
         setIsAuthenticated(true);
         setUser(response.data.user);
         setLastAuthCheck(Date.now());
       } else {
-        console.log('Setting isAuthenticated to false, reason:', response.data.reason);
         // Check the reason for authentication failure
         const reason = response.data.reason;
         
@@ -211,10 +198,7 @@ function App() {
     }
   };
 
-  console.log('=== App Render Debug ===');
-  console.log('loading:', loading);
-  console.log('isAuthenticated:', isAuthenticated);
-  console.log('user:', user);
+
 
   if (loading) {
     return (
@@ -226,15 +210,12 @@ function App() {
   }
 
   if (!isAuthenticated) {
-    console.log('Showing Login component - user not authenticated');
     return (
       <div>
         <Login onLogin={checkAuthStatus} />
       </div>
     );
   }
-
-  console.log('Showing Home component - user authenticated');
 
   return (
     <Router>
