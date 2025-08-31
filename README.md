@@ -7,11 +7,6 @@ A React web application that allows club administrators to review applicants fro
 Before running this application, you'll need:
 
 1. **Node.js** (version 16 or higher)
-2. **Google Cloud Project** with the following APIs enabled:
-   - Google Sheets API
-   - Google+ API (for OAuth)
-3. **Google OAuth 2.0 Credentials**
-4. **Google Service Account** (for accessing Google Sheets)
 
 ## Setup Instructions
 
@@ -52,7 +47,7 @@ Google cloud is needed for Google Auth and in order to access the Sheets spreadh
 3. Enable the following APIs:
    - Google Sheets API
    - Google+ API (for OAuth)
-4. ![alt text](https://file%2B.vscode-resource.vscode-cdn.net/Users/samanthagrieco/Documents/projects/applicant_reviewer/pics/gcp_clients.png?version%3D1756610036729)
+4. ![Google Cloud Project Clients](pics/gcp_clients.png)
 
 #### B. Configure OAuth Consent Screen
 1. Go to "APIs & Services" > "OAuth consent screen"
