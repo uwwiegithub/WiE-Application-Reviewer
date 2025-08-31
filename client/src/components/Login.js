@@ -45,7 +45,7 @@ const Login = ({ onLogin }) => {
       <div className="login-card">
         <h2>Welcome to Applicant Reviewer</h2>
         <p style={{ marginBottom: '20px', color: '#666' }}>
-          Please sign in with your authorized Google account to continue.
+          Please sign in with the WiE Google account to continue.
         </p>
         <button className="login-button" onClick={handleGoogleLogin}>
           <svg width="20" height="20" viewBox="0 0 24 24">
