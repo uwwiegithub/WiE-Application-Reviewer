@@ -56,18 +56,6 @@ const Login = ({ onLogin }) => {
           </svg>
           Sign in with Google
         </button>
-        
-        <div style={{ marginTop: '20px', fontSize: '12px', color: '#999' }}>
-          <p>If you continue to experience issues:</p>
-          <ul style={{ textAlign: 'left', margin: '10px 0' }}>
-            <li>Try refreshing the page</li>
-            <li>Check your internet connection</li>
-          </ul>
-          <p style={{ marginTop: '10px', fontSize: '11px', color: '#666' }}>
-            <strong>Note:</strong> If you're not seeing the Google sign-in page, 
-            try clearing your browser's cookies and cache, or use an incognito window.
-          </p>
-        </div>
       </div>
     </div>
   );

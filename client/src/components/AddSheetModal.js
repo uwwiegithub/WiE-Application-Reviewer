@@ -8,6 +8,7 @@ const AddSheetModal = ({ onClose, onSubmit }) => {
   });
   const [loading, setLoading] = useState(false);
   const [serviceAccountConfirmed, setServiceAccountConfirmed] = useState('');
+  const [columnsConfirmed, setColumnsConfirmed] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -25,6 +26,11 @@ const AddSheetModal = ({ onClose, onSubmit }) => {
 
     if (serviceAccountConfirmed !== 'yes') {
       alert('Please confirm that you have given the service account viewer access to the Google Sheet');
+      return;
+    }
+
+    if (columnsConfirmed !== 'yes') {
+      alert('Please confirm that your Google Sheet has all 3 required columns');
       return;
     }
 
@@ -103,6 +109,23 @@ const AddSheetModal = ({ onClose, onSubmit }) => {
             </select>
             <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
               You must give the service account viewer access to your Google Sheet before adding it
+            </small>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">The Google Sheet I am adding contains columns titled: "name", "email" and "First Choice Directorship"</label>
+            <select
+              name="columnsConfirmed"
+              className="form-select"
+              value={columnsConfirmed}
+              onChange={(e) => setColumnsConfirmed(e.target.value)}
+              required
+            >
+              <option value="">Select confirmation</option>
+              <option value="yes">Yes, my sheet has all 3 columns</option>
+            </select>
+            <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
+              Your Google Sheet must contain these exact column names for the application to work properly
             </small>
           </div>
 
