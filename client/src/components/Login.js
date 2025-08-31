@@ -41,9 +41,9 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container" style={{ backgroundColor: '#ecdefc', minHeight: '100vh' }}>
       <div className="login-card">
-        <h2>Welcome to Applicant Reviewer</h2>
+        <h2>Welcome to the WiE Undergrad Website</h2>
         <p style={{ marginBottom: '20px', color: '#666' }}>
           Please sign in with the WiE Google account to continue.
         </p>
