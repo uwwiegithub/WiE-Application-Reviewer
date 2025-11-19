@@ -46,7 +46,10 @@ if (missingVars.length > 0) {
 }
 
 // Database for persistent storage
-const db = require('./database');
+// Use PostgreSQL if DATABASE_URL is set, otherwise fall back to JSON file
+const db = process.env.DATABASE_URL 
+  ? require('./database-postgres')
+  : require('./database');
 
 
 
@@ -119,7 +122,8 @@ const ensureAuthenticated = (req, res, next) => {
       req.authenticatedVia = 'jwt';
       return next();
     } catch (error) {
-
+      console.log('JWT verification failed:', error.message);
+      // JWT is invalid, continue to session check
     }
   }
   
@@ -134,6 +138,7 @@ const ensureAuthenticated = (req, res, next) => {
     return next();
   }
   
+  console.log('Authentication failed - no valid JWT or session');
   res.status(401).json({ error: 'Not authenticated' });
 };
 
@@ -204,40 +209,41 @@ app.get('/auth/logout', (req, res) => {
 });
 
 app.get('/auth/status', (req, res) => {
-
-  
   // Check for JWT token in Authorization header
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     try {
       const decoded = jwt.verify(token, process.env.SESSION_SECRET);
-
+      console.log('JWT authentication successful for user:', decoded.email);
       return res.json({
         authenticated: true,
-        user: decoded.user
+        user: decoded.user,
+        authMethod: 'jwt'
       });
     } catch (error) {
-
+      console.log('JWT verification failed in /auth/status:', error.message);
     }
   }
   
   // Check passport authentication
   if (req.isAuthenticated()) {
-
+    console.log('Passport authentication successful');
     req.session.touch();
     res.json({ 
       authenticated: true, 
-      user: req.user
+      user: req.user,
+      authMethod: 'passport'
     });
   } else if (req.session && req.session.authenticated && req.session.user) {
-
+    console.log('Session authentication successful');
     res.json({ 
       authenticated: true, 
-      user: req.session.user
+      user: req.session.user,
+      authMethod: 'session'
     });
   } else {
-
+    console.log('No valid authentication found');
     res.json({ 
       authenticated: false,
       reason: req.session ? 'session_exists_but_not_authenticated' : 'no_session'
@@ -369,6 +375,14 @@ app.post('/api/sheets', ensureAuthenticated, async (req, res) => {
 app.get('/api/sheets', ensureAuthenticated, async (req, res) => {
   try {
     const sheets = await db.getSheets();
+    
+    // Disable caching to ensure fresh data
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     res.json(sheets);
   } catch (error) {
     console.error('Error fetching sheets:', error);
