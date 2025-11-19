@@ -7,12 +7,19 @@ const DB_FILE = path.join(__dirname, 'data.json');
 const initializeDB = async () => {
   try {
     await fs.access(DB_FILE);
+    // If file exists, ensure it has the notes field
+    const data = await readDB();
+    if (!data.notes) {
+      data.notes = {};
+      await writeDB(data);
+    }
   } catch (error) {
     // File doesn't exist, create it with default structure
     const defaultData = {
       sheets: [],
       votes: {},
       selections: {}, // New field for interview and hiring selections
+      notes: {}, // New field for applicant notes
       lastUpdated: new Date().toISOString()
     };
     await fs.writeFile(DB_FILE, JSON.stringify(defaultData, null, 2));
@@ -26,7 +33,7 @@ const readDB = async () => {
     return JSON.parse(data);
   } catch (error) {
     console.error('Error reading database:', error);
-    return { sheets: [], votes: {}, lastUpdated: new Date().toISOString() };
+    return { sheets: [], votes: {}, selections: {}, notes: {}, lastUpdated: new Date().toISOString() };
   }
 };
 
@@ -228,6 +235,48 @@ const db = {
       console.error('Error restoring database:', error);
       return false;
     }
+  },
+
+  // Get notes for a specific sheet
+  getNotesForSheet: async (sheetId) => {
+    const data = await readDB();
+    const sheetNotes = {};
+    
+    if (data.notes) {
+      Object.keys(data.notes).forEach(key => {
+        if (key.startsWith(sheetId + '-')) {
+          sheetNotes[key] = data.notes[key];
+        }
+      });
+    }
+    
+    return sheetNotes;
+  },
+
+  // Update notes for a specific applicant
+  updateNotes: async (sheetId, applicantRow, notesText) => {
+    const data = await readDB();
+    
+    // Initialize notes if it doesn't exist
+    if (!data.notes) {
+      data.notes = {};
+    }
+    
+    const notesKey = `${sheetId}-${applicantRow}`;
+    data.notes[notesKey] = {
+      text: notesText,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await writeDB(data);
+    return data.notes[notesKey];
+  },
+
+  // Get notes for a specific applicant
+  getApplicantNotes: async (sheetId, applicantRow) => {
+    const data = await readDB();
+    const notesKey = `${sheetId}-${applicantRow}`;
+    return data.notes[notesKey] || { text: '', updatedAt: null };
   }
 };
 

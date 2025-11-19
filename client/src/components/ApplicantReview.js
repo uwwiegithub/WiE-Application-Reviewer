@@ -13,6 +13,8 @@ const ApplicantReview = () => {
   const [currentApplicantIndex, setCurrentApplicantIndex] = useState(0);
   const [votes, setVotes] = useState({});
   const [selections, setSelections] = useState({});
+  const [notes, setNotes] = useState({});
+  const [currentNote, setCurrentNote] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -143,11 +145,33 @@ const ApplicantReview = () => {
     }
   }, [sheetId]);
 
+  const fetchNotes = useCallback(async () => {
+    try {
+      const response = await axios.get(`/api/sheets/${sheetId}/notes`);
+      setNotes(response.data);
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+      
+      // Handle authentication errors gracefully
+      if (error.response && error.response.status === 401) {
+        try {
+          await axios.post('/auth/refresh');
+          const retryResponse = await axios.get(`/api/sheets/${sheetId}/notes`);
+          setNotes(retryResponse.data);
+          return;
+        } catch (retryError) {
+
+        }
+      }
+    }
+  }, [sheetId]);
+
   useEffect(() => {
     fetchSheetAndApplicants();
     fetchVotes();
     fetchSelections();
-  }, [fetchSheetAndApplicants, fetchVotes, fetchSelections]);
+    fetchNotes();
+  }, [fetchSheetAndApplicants, fetchVotes, fetchSelections, fetchNotes]);
 
   const handleApplicantClick = (role, index) => {
     setCurrentRole(role);
@@ -155,6 +179,15 @@ const ApplicantReview = () => {
     setViewMode('detail');
     // Reset voter name when switching applicants
     setVoterName('');
+    
+    // Load notes for this applicant
+    const roleApplicants = applicants[role] || [];
+    const applicant = roleApplicants[index];
+    if (applicant) {
+      const notesKey = `${sheetId}-${applicant.rowIndex}`;
+      setCurrentNote(notes[notesKey]?.text || '');
+    }
+    
     // Refresh votes to ensure vote counts are up to date
     fetchVotes();
     // Scroll to top of page to show applicant data
@@ -165,6 +198,8 @@ const ApplicantReview = () => {
     setViewMode('list');
     // Reset voter name when going back to list
     setVoterName('');
+    // Clear current note
+    setCurrentNote('');
     // Refresh votes to ensure vote counts are up to date
     fetchVotes();
   };
@@ -368,7 +403,14 @@ const ApplicantReview = () => {
   const nextApplicant = () => {
     const roleApplicants = applicants[currentRole] || [];
     if (currentApplicantIndex < roleApplicants.length - 1) {
-      setCurrentApplicantIndex(currentApplicantIndex + 1);
+      const nextIndex = currentApplicantIndex + 1;
+      setCurrentApplicantIndex(nextIndex);
+      // Load notes for next applicant
+      const nextApplicant = roleApplicants[nextIndex];
+      if (nextApplicant) {
+        const notesKey = `${sheetId}-${nextApplicant.rowIndex}`;
+        setCurrentNote(notes[notesKey]?.text || '');
+      }
       // Reset voter name when moving to next applicant
       setVoterName('');
       // Refresh votes to ensure vote counts are up to date
@@ -378,8 +420,15 @@ const ApplicantReview = () => {
       const roles = Object.keys(applicants);
       const currentRoleIndex = roles.indexOf(currentRole);
       if (currentRoleIndex < roles.length - 1) {
-        setCurrentRole(roles[currentRoleIndex + 1]);
+        const nextRole = roles[currentRoleIndex + 1];
+        setCurrentRole(nextRole);
         setCurrentApplicantIndex(0);
+        // Load notes for first applicant in next role
+        const nextRoleApplicants = applicants[nextRole] || [];
+        if (nextRoleApplicants[0]) {
+          const notesKey = `${sheetId}-${nextRoleApplicants[0].rowIndex}`;
+          setCurrentNote(notes[notesKey]?.text || '');
+        }
         // Reset voter name when moving to next role
         setVoterName('');
         // Refresh votes to ensure vote counts are up to date
@@ -389,8 +438,16 @@ const ApplicantReview = () => {
   };
 
   const previousApplicant = () => {
+    const roleApplicants = applicants[currentRole] || [];
     if (currentApplicantIndex > 0) {
-      setCurrentApplicantIndex(currentApplicantIndex - 1);
+      const prevIndex = currentApplicantIndex - 1;
+      setCurrentApplicantIndex(prevIndex);
+      // Load notes for previous applicant
+      const prevApplicant = roleApplicants[prevIndex];
+      if (prevApplicant) {
+        const notesKey = `${sheetId}-${prevApplicant.rowIndex}`;
+        setCurrentNote(notes[notesKey]?.text || '');
+      }
       // Reset voter name when moving to previous applicant
       setVoterName('');
       // Refresh votes to ensure vote counts are up to date
@@ -400,9 +457,16 @@ const ApplicantReview = () => {
       const roles = Object.keys(applicants);
       const currentRoleIndex = roles.indexOf(currentRole);
       if (currentRoleIndex > 0) {
-        setCurrentRole(roles[currentRoleIndex - 1]);
-        const roleApplicants = applicants[roles[currentRoleIndex - 1]] || [];
-        setCurrentApplicantIndex(roleApplicants.length - 1);
+        const prevRole = roles[currentRoleIndex - 1];
+        setCurrentRole(prevRole);
+        const prevRoleApplicants = applicants[prevRole] || [];
+        const lastIndex = prevRoleApplicants.length - 1;
+        setCurrentApplicantIndex(lastIndex);
+        // Load notes for last applicant in previous role
+        if (prevRoleApplicants[lastIndex]) {
+          const notesKey = `${sheetId}-${prevRoleApplicants[lastIndex].rowIndex}`;
+          setCurrentNote(notes[notesKey]?.text || '');
+        }
         // Reset voter name when moving to previous role
         setVoterName('');
         // Refresh votes to ensure vote counts are up to date
@@ -464,6 +528,55 @@ const ApplicantReview = () => {
     }
     
     return position;
+  };
+
+  const handleNotesChange = async () => {
+    try {
+      const currentApplicantData = getCurrentApplicant();
+      if (!currentApplicantData) {
+        setError('No applicant data available');
+        return;
+      }
+
+      await axios.put(`/api/sheets/${sheetId}/notes/${currentApplicantData.rowIndex}`, {
+        notes: currentNote
+      });
+
+      // Update notes in state
+      const notesKey = `${sheetId}-${currentApplicantData.rowIndex}`;
+      setNotes(prev => ({
+        ...prev,
+        [notesKey]: {
+          text: currentNote,
+          updatedAt: new Date().toISOString()
+        }
+      }));
+
+      setSuccessMessage('Notes saved successfully!');
+      setTimeout(() => setSuccessMessage(''), 2000);
+    } catch (error) {
+      console.error('Error saving notes:', error);
+      
+      // Handle authentication errors
+      if (error.response && error.response.status === 401) {
+        try {
+          await axios.post('/auth/refresh');
+          // Retry the update
+          const currentApplicantData = getCurrentApplicant();
+          await axios.put(`/api/sheets/${sheetId}/notes/${currentApplicantData.rowIndex}`, {
+            notes: currentNote
+          });
+          
+          setSuccessMessage('Notes saved successfully!');
+          setTimeout(() => setSuccessMessage(''), 2000);
+          setError('');
+        } catch (retryError) {
+          setError('Authentication failed. Please refresh the page and try again.');
+        }
+      } else {
+        setError('Failed to save notes. Please try again.');
+      }
+    }
   };
 
   if (loading) {
@@ -773,6 +886,24 @@ const ApplicantReview = () => {
               </div>
             );
           })()}
+
+          {/* Notes Section */}
+          <div className="notes-section">
+            <h4 className="notes-title">Notes</h4>
+            <textarea
+              className="notes-textarea"
+              placeholder="Add notes about this applicant..."
+              value={currentNote}
+              onChange={(e) => setCurrentNote(e.target.value)}
+              rows={5}
+            />
+            <button 
+              className="save-notes-button"
+              onClick={handleNotesChange}
+            >
+              Save Notes
+            </button>
+          </div>
         </div>
 
         {/* Role Footer */}

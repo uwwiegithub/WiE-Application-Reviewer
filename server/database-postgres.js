@@ -51,12 +51,28 @@ const initializeDB = async () => {
       )
     `);
 
+    // Create notes table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS notes (
+        id SERIAL PRIMARY KEY,
+        sheet_id VARCHAR(255) NOT NULL,
+        applicant_row INTEGER NOT NULL,
+        notes_text TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE(sheet_id, applicant_row)
+      )
+    `);
+
     // Create indexes for better performance
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_votes_sheet_id ON votes(sheet_id);
     `);
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_selections_sheet_id ON selections(sheet_id);
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_notes_sheet_id ON notes(sheet_id);
     `);
 
     console.log('Database tables initialized successfully');
@@ -151,6 +167,9 @@ const db = {
       // Delete associated selections
       const selectionsResult = await client.query('DELETE FROM selections WHERE sheet_id = $1', [id]);
       
+      // Delete associated notes
+      const notesResult = await client.query('DELETE FROM notes WHERE sheet_id = $1', [id]);
+      
       // Delete the sheet
       await client.query('DELETE FROM sheets WHERE id = $1', [id]);
 
@@ -160,7 +179,8 @@ const db = {
         success: true, 
         deletedSheet, 
         removedVoteKeys: votesResult.rowCount,
-        removedSelections: selectionsResult.rowCount
+        removedSelections: selectionsResult.rowCount,
+        removedNotes: notesResult.rowCount
       };
     } catch (error) {
       await client.query('ROLLBACK');
@@ -398,6 +418,89 @@ const db = {
       return backupData;
     } catch (error) {
       console.error('Error creating backup:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+
+  // Get notes for a specific sheet
+  getNotesForSheet: async (sheetId) => {
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT applicant_row, notes_text, updated_at
+        FROM notes 
+        WHERE sheet_id = $1
+      `, [sheetId]);
+      
+      // Convert to the expected format: { "sheetId-applicantRow": {text, updatedAt} }
+      const sheetNotes = {};
+      result.rows.forEach(row => {
+        const key = `${sheetId}-${row.applicant_row}`;
+        sheetNotes[key] = {
+          text: row.notes_text || '',
+          updatedAt: row.updated_at ? row.updated_at.toISOString() : null
+        };
+      });
+      
+      return sheetNotes;
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+
+  // Update notes for a specific applicant
+  updateNotes: async (sheetId, applicantRow, notesText) => {
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        INSERT INTO notes (sheet_id, applicant_row, notes_text, updated_at)
+        VALUES ($1, $2, $3, NOW())
+        ON CONFLICT (sheet_id, applicant_row)
+        DO UPDATE SET 
+          notes_text = EXCLUDED.notes_text,
+          updated_at = NOW()
+        RETURNING notes_text, updated_at
+      `, [sheetId, applicantRow, notesText]);
+      
+      const row = result.rows[0];
+      return {
+        text: row.notes_text || '',
+        updatedAt: row.updated_at.toISOString()
+      };
+    } catch (error) {
+      console.error('Error updating notes:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+
+  // Get notes for a specific applicant
+  getApplicantNotes: async (sheetId, applicantRow) => {
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT notes_text, updated_at
+        FROM notes 
+        WHERE sheet_id = $1 AND applicant_row = $2
+      `, [sheetId, applicantRow]);
+      
+      if (result.rows.length === 0) {
+        return { text: '', updatedAt: null };
+      }
+      
+      const row = result.rows[0];
+      return {
+        text: row.notes_text || '',
+        updatedAt: row.updated_at ? row.updated_at.toISOString() : null
+      };
+    } catch (error) {
+      console.error('Error fetching applicant notes:', error);
       throw error;
     } finally {
       client.release();

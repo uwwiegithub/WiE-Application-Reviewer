@@ -715,6 +715,39 @@ app.delete('/api/votes/:sheetId/:applicantRow/:voterName', ensureAuthenticated, 
   }
 });
 
+// Get notes for applicants in a sheet
+app.get('/api/sheets/:sheetId/notes', ensureAuthenticated, async (req, res) => {
+  try {
+    const { sheetId } = req.params;
+    
+    const sheetNotes = await db.getNotesForSheet(sheetId);
+    
+    res.json(sheetNotes);
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    res.status(500).json({ error: 'Failed to fetch notes' });
+  }
+});
+
+// Update notes for a specific applicant
+app.put('/api/sheets/:sheetId/notes/:applicantRow', ensureAuthenticated, async (req, res) => {
+  try {
+    const { sheetId, applicantRow } = req.params;
+    const { notes } = req.body;
+    
+    if (notes === undefined) {
+      return res.status(400).json({ error: 'Missing notes field' });
+    }
+    
+    const updatedNotes = await db.updateNotes(sheetId, applicantRow, notes);
+    
+    res.json(updatedNotes);
+  } catch (error) {
+    console.error('Error updating notes:', error);
+    res.status(500).json({ error: 'Failed to update notes', details: error.message });
+  }
+});
+
 // Frontend is deployed separately on Vercel
 // Backend only serves API endpoints
 
