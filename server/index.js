@@ -46,9 +46,9 @@ if (missingVars.length > 0) {
 }
 
 // Database for persistent storage
-// Use PostgreSQL if DATABASE_URL is set, otherwise fall back to JSON file
-const db = process.env.DATABASE_URL 
-  ? require('./database-postgres')
+// Use MongoDB if MONGODB_URI is set, otherwise fall back to JSON file
+const db = process.env.MONGODB_URI 
+  ? require('./database-mongodb')
   : require('./database');
 
 
