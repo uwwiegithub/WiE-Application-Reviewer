@@ -476,8 +476,7 @@ app.get('/api/sheets/:sheetId/applicants', ensureAuthenticated, async (req, res)
         if (!header) return false;
         const lowerHeader = header.toLowerCase();
         return lowerHeader.includes('first choice directorship') || 
-               lowerHeader.includes('first choice') ||
-               lowerHeader.includes('directorship');
+               lowerHeader.includes('first choice');
       });
     
     // If no role columns found, log a warning
