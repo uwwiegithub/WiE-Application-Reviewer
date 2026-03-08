@@ -2,6 +2,8 @@
 
 A React web application that allows club administrators to review applicants from Google Sheets, with the ability to vote on candidates and track voting results.
 
+**[View the website here](https://wie-undergrad-comm.onrender.com/)**
+
 ## Prerequisites
 
 Before running this application, you'll need:
